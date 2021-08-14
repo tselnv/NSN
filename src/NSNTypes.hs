@@ -20,7 +20,7 @@ data DateYM = DateYM Year Month deriving (Eq, Show)
 
 type StDate = (Station, DateYM)
 
-type VolEE = Double -- единицы кВт*час
+type VolEE = Double -- units kWh*hour
 
 type Pust = Double
 
@@ -42,7 +42,7 @@ data GTPG = GTPG {
 
 
 data BalRowEE = BalRowEE {
-    _balRowEeGtpgs :: [GTPG] -- TODO при заполнении разнести по Pust
+    _balRowEeGtpgs :: [GTPG] -- TODO when filling, separate by installed capacity
   } deriving (Eq, Ord,Show)
 
 

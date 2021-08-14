@@ -18,7 +18,7 @@ vcSN = (fromIntegral . round) <$> do
                     
     
 
-{- величина, установленная Экспертной Комиссией -}
+{- value set by the Expert Commission-}
 expertCommission :: Reader InputData (Maybe VolEE)
 expertCommission = do
    st <- asks _indtStation
@@ -27,7 +27,7 @@ expertCommission = do
    return $ M.lookup (st, date) expCom
 
 
-{- Балансовый объём ДПМов меньше года -}
+{- Balance volume of CDC less than a year-}
 vcBalDpm :: Reader InputData VolEE
 vcBalDpm = do
   station <- asks _indtStation
@@ -45,7 +45,7 @@ vcBalDpm = do
 
 
 
-{- Проверка, что строка баланса отностися к ДПМ меньше года. Если в строке баланса есть ГТП разных типов, возвращает Left error  -} 
+{- Checking that the balance sheet line belongs to the CDC for less than a year. If there are DPGs of different types in the balance line, it returns Left error  -}
 isBalStringNewDpm :: BalRowEE -> Reader InputData (Either String Bool)
 isBalStringNewDpm balRow = do
   let allGtpgs = _balRowEeGtpgs balRow :: [GTPG]
@@ -64,7 +64,7 @@ isBalStringNewDpm balRow = do
 
 
 
-{- Проверка, что ГТП отностися к ДПМ со сроком эксплуатации меньше года -} 
+{- Check that the DPG belongs to the CDC with a service life of less than a year -}
 isNewDpm :: GTPG -> Reader InputData Bool
 isNewDpm gtpg = do
   date@(DateYM year mon) <- asks _indtDateYM
@@ -82,7 +82,7 @@ isDpm gtpg = do
       return $ (date >= beg && date <= end)
 
 
-{- Объём прочих - т.е. всех ГТП за исключением ДПМ меньше года-} 
+{- The volume of all others - i.e. all DPGs except for CDCs less than a year -}
 vcOther :: Reader InputData VolEE
 vcOther = asks _indtStation >>= \st ->
           vcBalOther >>=        \other ->
@@ -107,7 +107,7 @@ vcFact = do
            else vcFact2PrevYears
 
 
--- year -1 {- Если в станцию входит хоть одна ГТПГ типа ДПМ  больше года, но меньше 2 лет -}
+-- year -1 {- When the station includes at least one CDC type DPG for more than a year, but less than 2 years -}
 vcFactYminus1 :: Reader InputData (Maybe VolEE)
 vcFactYminus1  = do
   station <- asks _indtStation
@@ -117,17 +117,17 @@ vcFactYminus1  = do
     Nothing  -> error "vcFactYminus1: fact is Nothing" -- TODO change error to Either
     
 
--- 5 years {- если на начало расчетного месяца электростанция имеет тип «ГЭС» -}
+-- 5 years {- When at the beginning of the billing month the power plant is of the type HPP -}
 vcFactGES :: Reader InputData (Maybe VolEE)
 vcFactGES = vcAverageFact 5
 
 
--- year - 2 {- определения факта для всех прочих случаев -}
+-- year - 2 {- determining the fact for all other cases -}
 vcFact2PrevYears :: Reader InputData (Maybe VolEE)
 vcFact2PrevYears = vcAverageFact 2
 
 
-{- средний факт за последние nYears лет -}
+{- average fact for the last nYears years -}
 vcAverageFact :: Int -> Reader InputData (Maybe VolEE)
 vcAverageFact nYears = do
   station <- asks _indtStation
@@ -155,14 +155,14 @@ vcAverageFact nYears = do
         
   
 
-{- Проверка, что хоть одна ГТП станции относится к ДПМ больше года, но меньше 2 лет -} 
+{- Verification that at least one station DPG belongs to CDC for more than a year, but less than 2 years -}
 staionDpm2Y :: Reader InputData Bool
 staionDpm2Y = do
   station <- asks _indtStation
   (any id) <$> (traverse gtpgDpm2Y $ _stGtpgs station)
  
 
-{- Проверка, что ГТП относится к ДПМ больше года, но меньше 2 лет -} 
+{- Check that the gtr belongs to the CDC for more than a year, but less than 2 years -}
 gtpgDpm2Y :: GTPG -> Reader InputData Bool
 gtpgDpm2Y gtpg =  do
   date@(DateYM year mon) <- asks _indtDateYM
@@ -172,7 +172,7 @@ gtpgDpm2Y gtpg =  do
 
 
 
-{- ГТП имеет право на торговлю на ОРЭМ по состоянию на дату расчёта -}
+{- DPG has the right to trade on the wholesale electricity market as of the date of settlement -}
 gtpgHasRight :: GTPG -> Reader InputData Bool
 gtpgHasRight gtpg = do
   dateYM <- asks _indtDateYM
@@ -180,10 +180,10 @@ gtpgHasRight gtpg = do
 
 
 
-{- по состоянию на первое число расчетного месяца m года y
-наступила дата получения субъектом оптового рынка права на участие в торговле электрической энергией по ГТП генерации
-(и указанная дата наступила не позднее первого числа расчетного месяца m года y-1,
-но позднее первого числа расчетного месяца m года y-2) -}
+{- as of the first day of the calculated month m of the year y
+the date has come for the wholesale market entity to obtain the right to participate in the trade of electrical energy through the generation DPG
+(and the specified date came no later than the first day of the estimated month m of the year y-1,
+but later than the first day of the calculated month m of the year y-2) -}
 gtpgHasRightOnly1Year :: GTPG -> Reader InputData Bool
 gtpgHasRightOnly1Year gtpg = do
   let gtpgDateYM = _gtpgBeginDateYM gtpg
@@ -192,7 +192,7 @@ gtpgHasRightOnly1Year gtpg = do
   
 
 
-{- Балансовый объём прочих - т.е. всех ГТП за исключением ДПМ меньше года-} 
+{- Balance volume of others - i.e. all DPGs except for CDC less than a year -}
 vcBalOther :: Reader InputData VolEE
 vcBalOther = do
   station <- asks _indtStation

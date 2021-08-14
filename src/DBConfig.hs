@@ -10,18 +10,12 @@ import Database.PostgreSQL.Simple
 import Data.Word
 
 
--- type Login = String
+type Host = String
+type Port = Word16
+type Username = String
 type Password = String
+type DBName = String
 
--- dbConnectReader :: Reader (Login, Password) ConnectInfo
--- dbConnectReader  = reader env 
---   where env :: (Login, Password) -> ConnectInfo
---         env (login, password) = ConnectInfo
---                    { connectHost = "localhost"
---                    , connectPort = 5432 :: Word16
---                    , connectUser = login
---                    , connectPassword = password
---                    , connectDatabase = "nsn" }
 
 -- ------------------------------------------------
 
@@ -34,10 +28,9 @@ data SessionEnv = SessionEnv
 -- --------------------------------------------
 
 
-connInfo :: Password -> ConnectInfo
-connInfo pwd = ConnectInfo
-            { connectHost = "localhost"
-            , connectPort = 5432 :: Word16
-            , connectUser = "tsel"
+connInfo :: DBName -> Host -> Potr -> Username -> Password -> ConnectInfo
+connInfo db host port uname pwd = ConnectInfo
+            { connectHost = host
+            , connectPort = port
+            , connectUser = uname
             , connectPassword = pwd
-            , connectDatabase = "nsn" }
